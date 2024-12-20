@@ -19,7 +19,7 @@ processed_outputs/
     ├── default_prompt/
     │   ├── doc_001_qa.txt        #Individual file outputs
     │   ├── doc_001_qa.json
-    │   ├── combined_qa.txt       # Combined outputs
+    │   ├── combined_qa.txt       #combined outputs
     │   └── combined_qa.json
     └── alternative_prompt/
         ├── doc_001_qa.txt
@@ -52,8 +52,8 @@ python main.py --config config.yaml --input "contract_pdfs/filename1.pdf" --sing
 ```
 
 ### Process to run the pdf folders via GCP (input folder of pdfs from GCP bucket and output in GCP bucket"
+#### Change the storage provider name in config.yaml to gcp (currently local for local folder processing)
 ```bash
-Change the storage provider name in config.yaml to gcp (currently local for local folder processing)
 storage:
   provider: "gcp"
   project_id: "<project_id>"  #say, proud-archery-430400-i1 in our project case
