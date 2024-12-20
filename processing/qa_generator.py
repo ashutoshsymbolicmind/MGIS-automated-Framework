@@ -12,20 +12,6 @@ logger = logging.getLogger(__name__)
 
 PromptType = Literal['default', 'alternative']
 
-import requests
-import json
-import time
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Set, Union, Literal
-from datetime import datetime
-import logging
-from tqdm import tqdm
-from copy import deepcopy
-
-logger = logging.getLogger(__name__)
-
-PromptType = Literal['default', 'alternative']
-
 class QAOutputManager:
     """Manages QA outputs for different prompt types."""
     
@@ -57,23 +43,19 @@ class QAOutputManager:
         output_dir = self.get_output_dir()
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Calculate total stats for this document
         all_text = "\n<EOS>\n".join(self.qa_text[doc_id])
         stats = self.count_text_stats(all_text)
         self.doc_stats[doc_id] = stats
-        
-        # Save document text file
+
         txt_path = output_dir / f"{doc_id}_qa.txt"
         with open(txt_path, 'w', encoding='utf-8') as f:
             f.write(all_text)
         logger.info(f"Saved individual {self.prompt_type} text file: {txt_path}")
         
-        # Log statistics
         logger.info(f"Statistics for {doc_id} ({self.prompt_type} prompt):")
         logger.info(f"  - Total characters: {stats['characters']:,}")
         logger.info(f"  - Total words: {stats['words']:,}")
         
-        # Save document JSON file
         if policy_doc_name in self.qa_json:
             doc_json = {
                 policy_doc_name: self.qa_json[policy_doc_name],
@@ -92,7 +74,6 @@ class QAOutputManager:
         output_dir = self.get_output_dir()
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Calculate combined statistics
         total_stats = {
             'characters': sum(stats['characters'] for stats in self.doc_stats.values()),
             'words': sum(stats['words'] for stats in self.doc_stats.values())
@@ -109,12 +90,10 @@ class QAOutputManager:
                 f.write("\n<EOS>\n".join(all_qa_texts))
             logger.info(f"Saved combined {self.prompt_type} text file: {txt_path}")
             
-        # Log combined statistics
         logger.info(f"\nTotal statistics for {self.prompt_type} prompt:")
         logger.info(f"  - Total characters across all files: {total_stats['characters']:,}")
         logger.info(f"  - Total words across all files: {total_stats['words']:,}")
         
-        # Save combined JSON file with statistics
         combined_json = {
             'documents': self.qa_json,
             'statistics': {
@@ -155,8 +134,7 @@ class QAGenerator:
         self.model_name = config.ollama.model_name
         self.session = requests.Session()
         self.processed_sections: Set[str] = set()
-        
-        # Initialize output managers for both prompt types
+
         self.output_managers = {
             'default': QAOutputManager(config, 'default'),
             'alternative': QAOutputManager(config, 'alternative')
@@ -201,7 +179,6 @@ class QAGenerator:
         for line in lines:
             if line.startswith('Q:'):
                 if current_q and current_a:
-                    # Different validation for alternative prompt
                     if prompt_type == 'alternative' or (
                         prompt_type == 'default' and 
                         current_q.endswith('?') and
@@ -316,20 +293,17 @@ class QAGenerator:
                 
                 if qa_pairs:
                     has_content = True
-                    # Add to outputs
                     output_manager.add_keyword_content(
                         doc_id, policy_doc_name, keyword, qa_pairs, 
                         occurrences, original_filename
                     )
                     
-                    # Add QA pairs to text output
                     for qa in qa_pairs:
                         qa_text = f"Q: {qa['question']}\nA: {qa['answer']}"
                         output_manager.add_qa_pair(doc_id, qa_text)
                     
                     self.processed_sections.add(checkpoint_key)
         
-        # Save individual document outputs if we added content
         if has_content:
             output_manager.save_doc_outputs(doc_id, policy_doc_name)
             logger.info(f"Saved outputs for {original_filename} ({prompt_type})")
@@ -340,9 +314,7 @@ class QAGenerator:
             logger.warning("No masked content provided")
             return
 
-        # If it's a single file result (no 'findings' key), wrap it
         if 'findings' not in masked_content and any(k in masked_content for k in self.config.keywords):
-            # For single file, use actual filename if available from pdf_processor
             filename = masked_content.get('original_filename', 'single_file.pdf')
             masked_content = {
                 'doc_001': {
@@ -350,8 +322,6 @@ class QAGenerator:
                     'findings': masked_content
                 }
             }
-
-        # Process each document with both prompt types
         total_files = len(masked_content)
         logger.info(f"Processing {total_files} file(s)")
         
@@ -361,18 +331,14 @@ class QAGenerator:
             
             logger.info(f"\nProcessing file: {original_filename}")
             
-            # Process with default prompt
             logger.info("Processing with default prompt")
             self.process_document_keywords(doc_id, findings, original_filename, 'default')
             
-            # Process with alternative prompt
             logger.info("Processing with alternative prompt")
             self.process_document_keywords(doc_id, findings, original_filename, 'alternative')
             
-            # Log completion of individual file
             logger.info(f"Completed processing {original_filename}")
         
-        # Save combined outputs after all files are processed
         logger.info("Processing complete. Creating combined outputs...")
         for prompt_type, output_manager in self.output_managers.items():
             output_manager.save_combined_outputs()
