@@ -1,0 +1,109 @@
+storage:
+  provider: "local" 
+  
+input:
+  file_extensions: [".pdf"]
+
+output:
+  base_folder: "processed_outputs"
+  subfolder_names:
+    masked: "masked_content"
+    qa: "qa_outputs"
+    default_prompt: "default_prompt"
+    alternative_prompt: "alternative_prompt"
+
+processing:
+  augmentation_factor: 1
+  parallel_prompts: false     #whether to process prompts in parallel
+  max_workers: 4    
+
+ollama:
+  model_name: "llama3"
+  base_url: "http://localhost:11434"
+  temperature: 0.3
+  timeout: 180
+  retries: 3
+  retry_delay: 5 
+
+keywords:
+  - Carrier
+  - Effective Date
+  - State
+  - Minimum Hours Requirement
+  - Waiting Period
+  - Rehire Provision
+  - Contribution
+  - Elimination Period
+  - Benefit Percentage
+  - Maximum Benefit
+  - Maximum Duration
+  - Minimum Benefit
+  - Rehabilitation Benefit
+  - Dependent Care Expense Benefit
+  - Continuity of Coverage
+  - Pre-existing Condition
+  - Survivor Benefit
+  - Work Life Assistance Program
+  - Waiver of Premium
+  - Monthly Earnings
+
+prompts:
+  default: |
+    Generate 5 comprehensive question-answer pairs about {keyword} and the associated 
+    Content from {policy_doc_name}, Page(s) {formatted_pages}:
+    {content}
+
+    Requirements:
+    
+    1. Questions MUST:
+    - Focus on one specific aspect or requirement
+    - ALWAYS end with EXACTLY one of these two phrases:
+        * "based on {policy_doc_name}?"
+        * "as per {policy_doc_name}?"
+    - Be clear and direct
+    
+    2. Answers MUST:
+    - Be detailed and comprehensive (3-4 sentences minimum)
+    - Include ALL relevant details from the source text about the specific topic
+    - Maintain a natural, flowing narrative style
+    - Begin with a clear topic sentence
+    - Include supporting details and any relevant conditions or exceptions
+    - ALWAYS end with EXACTLY: (Source: {policy_doc_name}, Page {formatted_pages})
+    - Only include information explicitly stated in the source text
+
+    Format each QA pair EXACTLY like this:
+
+    Q: [Specific question about one aspect] [MUST end with "based on {policy_doc_name}?" OR "as per {policy_doc_name}?"]
+    A: [Topic sentence introducing the answer]. [2-3 sentences with supporting details, conditions, or exceptions]. [Additional context or related information if available]. (Source: {policy_doc_name}, Page {formatted_pages})
+
+    Example format:
+    Q: What are the specific requirements for the elimination period as per {policy_doc_name}?
+    A: The elimination period for long-term disability benefits is 180 consecutive days. This period must be satisfied with continuous disability before any benefits become payable under the policy. During this period, the employee must remain continuously disabled and cannot return to work, even on a partial basis, without resetting the elimination period. (Source: {policy_doc_name}, Page {formatted_pages})
+    
+    Remember:
+    - Generate 5 questions
+    - Each answer must be detailed and comprehensive
+    - Only include information explicitly stated in the text
+    - Maintain exact formatting for questions and source citations
+    - Ensure natural, flowing narrative in answers
+
+  alternative: |
+    Generate 10 focused question-answer pairs about {keyword} based on this information.
+    
+    Content from {policy_doc_name}, Page(s) {formatted_pages}:
+    {content}
+    
+    Requirements:
+    1. Each question should be short and specific, asking about one fact only
+    2. Questions should be under 10 words
+    3. Answers must:
+      - Be a single sentence
+      - Include source reference: (Source: {policy_doc_name}, Page {formatted_pages})
+      - Contain only facts explicitly stated in the text
+      - Be direct and clear
+
+    Format each QA pair exactly like this:
+    Q: "specific factual question?"
+    A: "single-sentence answer (Source: {policy_doc_name}, Page {formatted_pages})"
+
+    Generate questions only for information explicitly stated in the text provided.
