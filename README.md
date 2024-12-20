@@ -43,7 +43,7 @@ python main.py --config config.yaml --input "<folder with pdfs>"
 
 ### Process to test for a single pdf file
 ```bash
-python main.py --config config.yaml --input "<folder with pdfs>"
+python main.py --config config.yaml --input "<folder with pdfs>/<filename>.pdf"
 ```
 
 ### Process to test for a single pdf file and a single keyword
