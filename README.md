@@ -51,8 +51,11 @@ python main.py --config config.yaml --input "<folder with pdfs>"
 python main.py --config config.yaml --input "<folder with pdfs>/<filename>.pdf" --single-file --keyword "Waiting Period"
 ```
 
-### Process to run the pdf folders via GCP (input folder of pdfs from GCP bucket and output in GCP bucket"
+---
+
+### Process to run the pdf folders via GCP (input folder of pdfs from GCP bucket and output in GCP bucket)
 #### Change the storage provider name in config.yaml to gcp (currently local for local folder processing)
+
 ```bash
 storage:
   provider: "gcp"
