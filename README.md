@@ -48,7 +48,7 @@ python main.py --config config.yaml --input "<folder with pdfs>"
 
 ### Process to test for a single pdf file and a single keyword
 ```bash
-python main.py --config config.yaml --input "contract_pdfs/filename1.pdf" --single-file --keyword "Waiting Period"
+python main.py --config config.yaml --input "<folder with pdfs>/<filename>.pdf" --single-file --keyword "Waiting Period"
 ```
 
 ### Process to run the pdf folders via GCP (input folder of pdfs from GCP bucket and output in GCP bucket"
